@@ -1,3 +1,12 @@
-# N queen
-This was the hardest coding challenge i have every done. Please god, dont let any future employer make me do an interview using this question 😢😢
-😢😢😢
+# N Queens
+This project contains interview coding challenges.
+
+# Setup
+```bash
+touch 0-nqueens.py
+chmod +x 0-nqueens.py
+./0-nqueens.py 4
+
+# Lint.
+pycodestyle 0-nqueens.py
+```
