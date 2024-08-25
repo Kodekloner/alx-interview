@@ -1,61 +1,37 @@
 #!/usr/bin/python3
-"""UTF-8 validation module.
-"""
+""" UTF-8 validation """
 
 
 def validUTF8(data):
-    """Checks if a list of integers are valid UTF-8 codepoints.
-    See <https://datatracker.ietf.org/doc/html/rfc3629#page-4>
-    """
-    skip = 0
-    n = len(data)
-    for i in range(n):
-        if skip > 0:
-            skip -= 1
-            continue
-        if type(data[i]) != int or data[i] < 0 or data[i] > 0x10ffff:
-            return False
-        elif data[i] <= 0x7f:
-            skip = 0
-        elif data[i] & 0b11111000 == 0b11110000:
-            # 4-byte utf-8 character encoding
-            span = 4
-            if n - i >= span:
-                next_body = list(map(
-                    lambda x: x & 0b11000000 == 0b10000000,
-                    data[i + 1: i + span],
-                ))
-                if not all(next_body):
-                    return False
-                skip = span - 1
-            else:
-                return False
-        elif data[i] & 0b11110000 == 0b11100000:
-            # 3-byte utf-8 character encoding
-            span = 3
-            if n - i >= span:
-                next_body = list(map(
-                    lambda x: x & 0b11000000 == 0b10000000,
-                    data[i + 1: i + span],
-                ))
-                if not all(next_body):
-                    return False
-                skip = span - 1
-            else:
-                return False
-        elif data[i] & 0b11100000 == 0b11000000:
-            # 2-byte utf-8 character encoding
-            span = 2
-            if n - i >= span:
-                next_body = list(map(
-                    lambda x: x & 0b11000000 == 0b10000000,
-                    data[i + 1: i + span],
-                ))
-                if not all(next_body):
-                    return False
-                skip = span - 1
-            else:
-                return False
+    """ main function """
+    flag = False
+    jump_list = {30: 3, 14: 4, 6: 5}
+    char_length = {3: 3, 4: 2, 5: 1}
+    list_length = 0
+    if (len(data) == 0) or (len(data) == 1 and data[0] >> 7 == 0):
+        return True
+    for num in data:
+        if list_length:
+            list_length -= 1
         else:
+            flag = False
+        if len(bin(num)[2:]) == 9:
+            num = int(bin(num)[3:], 2)
+        if num >> 7 != 0 and len(bin(num)[2:]) >= 8:
+            if (not flag and num >> 6 == 2):
+                return False
+            elif (flag and num >> 6 != 2):
+                return False
+            for test_point, shift in jump_list.items():
+                if num >> shift == test_point:
+                    list_length = char_length[shift]
+                    break
+            if not (list_length or flag):
+                return False
+            else:
+                flag = True
+        elif num >> 7 == 0 and flag:
             return False
+    if list_length:
+        return False
     return True
